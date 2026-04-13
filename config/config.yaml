@@ -1,0 +1,20 @@
+# LuminaPayroll 全局配置
+project:
+  name: "LuminaPayroll"
+  version: "1.0.0"
+  description: "LuminaPayroll自动化测试工程"
+
+# 默认环境
+environment: dev
+
+# 日志配置
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "reports/logs/test.log"
+
+# 报告配置
+report:
+  title: "LuminaPayroll测试执行报告"
+  output_dir: "reports/html"
+  logo: "LuminaPayroll"

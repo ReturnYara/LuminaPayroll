@@ -1,0 +1,11 @@
+# 生产环境配置
+base_url: "https://lumina-payroll.com"
+api_base_url: "https://lumina-payroll.com/api"
+ui_base_url: "https://lumina-payroll.com"
+
+database:
+  host: "prod-db.lumina-payroll.com"
+  port: 3306
+  name: "lumina_payroll_prod"
+  user: "prod_user"
+  password: "prod_password"

@@ -1,0 +1,40 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Pytest: Current File",
+        "type": "python",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "${file}",
+          "-v"
+        ],
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "Pytest: All Tests",
+        "type": "python",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "testcases/",
+          "-v"
+        ],
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "Pytest: Login Tests",
+        "type": "python",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "testcases/api/test_auth.py",
+          "-v",
+          "-k",
+          "login"
+        ],
+        "console": "integratedTerminal"
+      }
+    ]
+  }

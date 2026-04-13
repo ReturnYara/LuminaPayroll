@@ -1,0 +1,73 @@
+# LuminaPayroll Cursor AI 配置
+
+## 工程概述
+这是一个基于PO模式的Python自动化测试工程，支持API和UI测试。
+
+## 代码规范
+
+### Python 代码风格
+- 使用双引号作为字符串默认引号
+- 函数和变量使用 snake_case
+- 类名使用 PascalCase
+- 添加类型注解
+- 每个函数必须有 docstring
+
+### 测试用例规范
+- 测试类以 Test 开头
+- 测试方法以 test_ 开头
+- 使用 pytest 的 fixture 进行初始化
+- API测试继承 BaseApi，UI测试继承 BasePage
+
+### 自然语言转代码规则
+当用户用自然语言描述测试用例时：
+1. 识别 HTTP 方法（GET/POST/PUT/DELETE）
+2. 提取接口路径和参数
+3. 识别断言条件
+4. 生成符合 pytest 规范的代码
+
+## 常用模板
+
+### API 测试模板
+```python
+import pytest
+from pages.api.{module}_api import {Module}Api
+
+class Test{Feature}:
+    """{描述}"""
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.api = {Module}Api()
+
+    def test_{场景}(self):
+        """{测试描述}"""
+        response = self.api.{method}("{endpoint}")
+        assert response.status_code == {status}
+        result = response.json()
+        assert result["code"] == 0
+```
+
+### UI 测试模板
+```python
+import pytest
+from playwright.sync_api import Page
+from pages.ui.{page}_page import {Page}Page
+
+class Test{Feature}:
+    """{描述}"""
+
+    def test_{场景}(self, page: Page):
+        """{测试描述}"""
+        {page}_page = {Page}Page(page)
+        {page}_page.navigate()
+        # 操作步骤
+        {page}_page.assert_{条件}()
+```
+
+## 文件组织
+- pages/api/ - API接口封装
+- pages/ui/ - UI页面对象
+- testcases/api/ - API测试用例
+- testcases/ui/ - UI测试用例
+- testdata/ - 测试数据
+- config/ - 配置文件

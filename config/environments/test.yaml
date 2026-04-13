@@ -1,0 +1,11 @@
+# 测试环境配置
+base_url: "http://test.lumina-payroll.com"
+api_base_url: "http://test.lumina-payroll.com/api"
+ui_base_url: "http://test.lumina-payroll.com"
+
+database:
+  host: "test-db.lumina-payroll.com"
+  port: 3306
+  name: "lumina_payroll_test"
+  user: "test_user"
+  password: "test_password"

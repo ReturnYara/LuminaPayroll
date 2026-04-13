@@ -1,0 +1,6 @@
+{
+  "name": "生成测试用例",
+  "description": "从自然语言描述生成pytest测试用例",
+  "prompt": "请根据以下自然语言描述，生成符合LuminaPayroll工程规范的pytest测试用例代码。\n\n描述：\n{input}\n\n要求：\n1. 如果是API测试，使用requests库，继承BaseApi\n2. 如果是UI测试，使用Playwright，继承BasePage\n3. 添加适当的断言\n4. 包含docstring说明\n5. 使用类型注解\n\n请生成完整的Python代码：",
+  "temperature": 0.3
+}
