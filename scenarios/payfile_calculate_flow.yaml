@@ -1,0 +1,40 @@
+# ===== 场景：发放单计算全流程 =====
+# 通过自然语言描述场景，引擎自动串联执行对应的原子用例
+#
+# 结构说明:
+#   name: 场景名称
+#   description: 场景描述（可供 AI 匹配的自然语言）
+#   tags: 标签，用于筛选
+#   steps: 步骤列表，按顺序串联执行
+#     - name: 步骤名称
+#       testcase: 对应的原子用例路径（模块::类::方法）
+#       params: 传入参数（会覆盖 data/*.yaml 中的默认值）
+#       save_to_context: 把响应中的某些字段存到上下文，供后续步骤使用
+#       use_from_context: 从上下文读取值作为参数
+
+name: "发放单计算全流程"
+description: "验证发放单从验证计算条件到执行薪资计算再到计算完成的完整流程"
+tags:
+  - payfile
+  - calculate
+  - smoke
+
+steps:
+  - name: "验证计算条件"
+    testcase: "testcases/api/test_payfile_calculate.py::TestVerifyCalculate::test_verify_calculate_success"
+    params:
+      pay_file_id: "${pay_file_id}"
+      service_code: "${service_code}"
+
+  - name: "执行薪资计算"
+    testcase: "testcases/api/test_payfile_calculate.py::TestCalcalutePayDocDatas::test_calcalute_success"
+    params:
+      pay_file_id: "${pay_file_id}"
+      query_id_str: "${query_id_str}"
+
+# ===== 全局参数（可被步骤的 params 引用） =====
+# 运行时会优先从 data/payfile_calculate.yaml 加载，此处可覆盖
+global_params:
+  pay_file_id: "2517354962929844224"
+  query_id_str: "17762587164772517354962929844224"
+  service_code: "HRXZHS_MDD_030030"

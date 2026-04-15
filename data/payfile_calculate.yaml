@@ -1,0 +1,35 @@
+# 发放单计算接口参数化数据
+# 使用前请替换为实际环境的值
+
+# 环境配置
+base_url: "https://c4.yonyoucloud.com"
+service_code: "HRXZHS_MDD_030030"
+
+# ===== 认证信息通过环境变量传入（不在此文件中维护） =====
+# export YONYOU_COOKIE="cookie1=val1; cookie2=val2"    # 从浏览器 DevTools 复制
+# export YONYOU_XSRF_TOKEN="AX_xxx"                    # (可选) x-xsrf-token
+
+# ===== 以下为前置接口产生的参数，需根据实际业务数据填写 =====
+
+# 发放单ID（由 bill/save 接口创建后返回）
+pay_file_id: "2517354962929844224"
+
+# 查询标识串（时间戳 + payFileId 组合，前端自动生成）
+query_id_str: "17762587164772517354962929844224"
+
+# 发薪人员数量（syncPayfileDoc 同步后的人数）
+record_count: 2
+
+# 计算类型：0=正常计算
+calcalute_type: 0
+
+# 选中的发薪人员ID列表（空列表=全部计算）
+select_row_doc_ids: []
+
+# 分页配置
+page_size: 200
+page_index: 1
+
+# 计算进度轮询配置
+progress_poll_interval: 2    # 轮询间隔（秒）
+progress_poll_timeout: 120   # 超时时间（秒）

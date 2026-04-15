@@ -1,5 +1,5 @@
 import pytest
-from pages.api.payroll_api import PayrollApi, AuthApi
+from pages.api.payroll_api import PayrollApi
 
 
 class TestPayroll:
@@ -8,7 +8,6 @@ class TestPayroll:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.payroll_api = PayrollApi()
-        self.auth_api = AuthApi()
 
     def test_calculate_payroll(self):
         """测试工资计算"""
@@ -31,11 +30,3 @@ class TestPayroll:
         result = response.json()
         assert result["code"] == 0
         assert isinstance(result["data"], list)
-
-    def test_login(self):
-        """测试登录"""
-        response = self.auth_api.login("admin", "admin123")
-        assert response.status_code == 200
-        result = response.json()
-        assert result["code"] == 0
-        assert "token" in result["data"]
