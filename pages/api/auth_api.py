@@ -55,3 +55,27 @@ class AuthApi(BaseApi):
             result = response.json()
             return result.get("data", {}).get("token", "")
         return ""
+    
+    def get_cookies(self) -> dict:
+        """
+        获取登录后的cookies（供其他接口使用）
+        
+        Returns:
+            dict: cookies字典
+        """
+        # 先登录，让session保存cookies
+        response = self.login()
+        if response.status_code == 200:
+            # 从session中获取cookies
+            return dict(self.session.cookies)
+        return {}
+    
+    def get_cookie_string(self) -> str:
+        """
+        获取登录后的cookie字符串（用于Header）
+        
+        Returns:
+            str: cookie字符串，如 "sessionid=xxx; csrftoken=yyy"
+        """
+        cookies = self.get_cookies()
+        return "; ".join([f"{k}={v}" for k, v in cookies.items()])

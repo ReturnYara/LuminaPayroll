@@ -33,6 +33,9 @@ class MockAuthHandler(BaseHTTPRequestHandler):
         # 登出接口
         elif self.path == "/api/auth/logout":
             self._handle_logout(data)
+        # 薪资计算接口
+        elif self.path == "/api/payroll/calculate":
+            self._handle_payroll_calculate(data)
         else:
             self._send_error(404, "Not Found")
     
@@ -55,6 +58,15 @@ class MockAuthHandler(BaseHTTPRequestHandler):
         }
         
         if username in valid_accounts and valid_accounts[username] == password:
+            # 设置session cookie
+            session_id = f"session_{username}_{int(time.time())}"
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Set-Cookie', f'sessionid={session_id}; Path=/; HttpOnly')
+            self.send_header('Set-Cookie', f'username={username}; Path=/')
+            self.end_headers()
+            
             response = {
                 "code": 0,
                 "message": "登录成功",
@@ -64,7 +76,7 @@ class MockAuthHandler(BaseHTTPRequestHandler):
                     "role": "admin" if username == "admin" else "user"
                 }
             }
-            self._send_json(200, response)
+            self.wfile.write(json.dumps(response).encode())
         else:
             response = {
                 "code": 1001,
@@ -80,16 +92,62 @@ class MockAuthHandler(BaseHTTPRequestHandler):
         }
         self._send_json(200, response)
     
+    def _handle_payroll_calculate(self, data):
+        """处理薪资计算"""
+        # 获取cookie验证登录状态
+        cookie_header = self.headers.get('Cookie', '')
+        
+        # 简单的cookie验证
+        if 'sessionid=' not in cookie_header:
+            response = {
+                "code": 1002,
+                "message": "未登录或登录已过期"
+            }
+            self._send_json(401, response)
+            return
+        
+        # 计算薪资
+        base_salary = data.get('baseSalary', 0)
+        bonus = data.get('bonus', 0)
+        total = base_salary + bonus
+        
+        response = {
+            "code": 0,
+            "message": "计算成功",
+            "data": {
+                "employeeId": data.get('employeeId'),
+                "month": data.get('month'),
+                "totalAmount": total,
+                "baseSalary": base_salary,
+                "bonus": bonus
+            }
+        }
+        self._send_json(200, response)
+    
     def _handle_payroll(self):
         """处理工资查询"""
+        # 获取cookie验证登录状态
+        cookie_header = self.headers.get('Cookie', '')
+        
+        # 简单的cookie验证
+        if 'sessionid=' not in cookie_header:
+            response = {
+                "code": 1002,
+                "message": "未登录或登录已过期"
+            }
+            self._send_json(401, response)
+            return
+        
+        # 历史记录
         response = {
             "code": 0,
             "message": "成功",
-            "data": {
-                "totalAmount": 12000,
-                "baseSalary": 10000,
-                "bonus": 2000
-            }
+            "data": [
+                {
+                    "month": "2024-01",
+                    "totalAmount": 12000
+                }
+            ]
         }
         self._send_json(200, response)
     
