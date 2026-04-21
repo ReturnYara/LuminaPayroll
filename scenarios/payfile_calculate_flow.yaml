@@ -13,7 +13,7 @@
 #       use_from_context: 从上下文读取值作为参数
 
 name: "发放单计算全流程"
-description: "验证发放单从验证计算条件到执行薪资计算再到计算完成的完整流程"
+description: "发放单不同税种的基本计算流程"
 tags:
   - payfile
   - calculate
