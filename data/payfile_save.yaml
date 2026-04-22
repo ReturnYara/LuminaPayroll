@@ -1,0 +1,83 @@
+# 发放单保存接口 (bill/save) 参数化数据
+# 使用前请替换为实际环境的值
+
+# ===== 环境配置 =====
+base_url: "https://c4.yonyoucloud.com"
+service_code: "HRXZHS_MDD_030030"
+
+# ===== 认证信息通过环境变量传入（不在此文件中维护） =====
+# export YONYOU_COOKIE="cookie1=val1; cookie2=val2"
+# export YONYOU_XSRF_TOKEN="AX_xxx"
+
+# ===== 请求体顶层字段 =====
+billnum: "wa_pay_file_card"
+
+# ===== URL 参数 =====
+transi_type_id: "2517031783814925328"
+transi_type_code: "payFileApprove"
+transi_type_name: "新建发放单"
+org_id: "2517046541330939914"
+
+# ===== data 业务参数（发放单核心信息） =====
+data:
+  # 租户
+  tenant: "ppycw2h8"
+  ytenant: "ppycw2h8"
+
+  # 业务组织
+  busiOrg: "2517046541330939914"
+  busiOrgVid: "2517046541330939914"
+  orgName: "壹贰叁"
+
+  # 发放单编码
+  code: "111"
+
+  # 发放单名称（多语言）
+  name:
+    zh_CN: "ty全税种测试方案-202501"
+    en_US: "ty全税种测试方案-202501"
+    zh_TW: "ty全税种测试方案-202501"
+
+  # 薪资方案
+  waSchemeId: "2517186557262168065"
+  pkWaScheme: "2517186557262168067"
+  pkWaSchemeName: "ty全税种测试方案"
+
+  # 薪资期间
+  periodRuleId: "2517185689663569924"
+  payPeriod: "2517185715448578056"
+  payPeriodName: "2025-01"
+  taxMonth: "2025-01"
+
+  # 发放日期
+  payDate: "2026-04-02"
+
+  # 币种
+  currency: "2517031809601503293"
+  currencyName: "人民币"
+
+  # 交易类型
+  transiTypeCode: "payFileApprove"
+  transiTypeId: "2517031783814925328"
+  transiTypeName: "新建发放单"
+
+  # 薪资项目列表（items）
+  # 完整的 items 列表较长（HAR 中有 174 条），这里给出示例结构
+  # 实际使用时可从 HAR / 接口返回中复制完整列表
+  items: []
+  # items 示例:
+  # - formula: "`waitem.f_n_26`+`waitem.f_n_27`+`waitem.f_n_28`"
+  #   pkWaSchemeItem: "2517186583031971847"
+  #   schemeName: "应发工资"
+  #   formulaStr: "waitem.f_n_26+waitem.f_n_27+waitem.f_n_28"
+  #   categoryId: "ppycw2h8itemclass0001"
+  #   categoryName: "系统项"
+  #   dataType: "1"
+  #   property: "2"
+  #   userDefFlag: "0"
+  #   fromFlag: "9"
+  #   projectIn: ""
+  #   ownershipTable: "wa_payfile_detail_ppycw2h8"
+  #   _status: "Insert"
+  #   _id: "rowId_125"
+  #   ttt_id: "rowId_125"
