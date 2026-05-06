@@ -40,9 +40,19 @@ class TestScenarios:
 
     @pytest.mark.parametrize("scenario_path", get_all_scenarios())
     def test_scenario(self, scenario_path):
-        """执行场景 YAML"""
+        """场景用例：发放单基础算税"""
         runner = ScenarioRunner(str(PROJECT_ROOT))
         report = runner.run_scenario(scenario_path)
+
+        # 加载场景描述信息
+        import yaml
+        with open(scenario_path, "r", encoding="utf-8") as f:
+            scenario_meta = yaml.safe_load(f)
+        report["description"] = scenario_meta.get("description", "")
+
+        # 注册到全局报告收集器
+        import conftest as _conftest
+        _conftest._lumina_scenarios.append(report)
 
         # 打印步骤结果
         for step in report["steps"]:
@@ -51,9 +61,10 @@ class TestScenarios:
             if step["error"]:
                 print(f"       {step['error'][:200]}")
 
-        # 断言场景整体通过
+        # 断言场景整体通过（仅关键步骤失败才判定场景失败）
         summary = report["summary"]
         assert report["status"] == "passed", (
-            f"场景失败: {summary['failed']} 个步骤失败, "
+            f"场景失败: {summary.get('critical_failed', summary['failed'])} 个关键步骤失败, "
+            f"{summary['failed']} 个步骤失败, "
             f"{summary['skipped']} 个步骤跳过"
         )

@@ -1,19 +1,20 @@
 # ===== 场景：发放单计算全流程 =====
-# 通过自然语言描述场景，引擎自动串联执行对应的原子用例
+# 场景由其下属的测试用例组成，场景是否通过取决于所有关键步骤是否通过。
 #
 # 结构说明:
 #   name: 场景名称
-#   description: 场景描述（可供 AI 匹配的自然语言）
+#   description: 场景描述
 #   tags: 标签，用于筛选
 #   steps: 步骤列表，按顺序串联执行
 #     - name: 步骤名称
 #       testcase: 对应的原子用例路径（模块::类::方法）
 #       params: 传入参数（会覆盖 data/*.yaml 中的默认值）
-#       save_to_context: 把响应中的某些字段存到上下文，供后续步骤使用
-#       use_from_context: 从上下文读取值作为参数
+#       critical: 是否为关键步骤（默认 true）
+#                 关键步骤失败会终止后续依赖步骤；非关键步骤失败不影响后续执行
+#       depends_on: 依赖的步骤名称列表，被依赖步骤失败则本步骤跳过
 
-name: "发放单计算全流程"
-description: "发放单不同税种的基本计算流程"
+name: "场景一：发放单基础算税场景"
+description: "发放单基础算税场景：验证计算状态→执行计算→查询计算结果"
 tags:
   - payfile
   - calculate
@@ -25,16 +26,40 @@ steps:
     params:
       pay_file_id: "${pay_file_id}"
       service_code: "${service_code}"
+    critical: true
+
+  - name: "验证计算条件-指定人员"
+    testcase: "testcases/api/test_payfile_calculate.py::TestVerifyCalculate::test_verify_calculate_with_selected_docs"
+    params:
+      pay_file_id: "${pay_file_id}"
+      service_code: "${service_code}"
+    critical: false
+    depends_on: ["验证计算条件"]
 
   - name: "执行薪资计算"
     testcase: "testcases/api/test_payfile_calculate.py::TestCalcalutePayDocDatas::test_calcalute_success"
     params:
       pay_file_id: "${pay_file_id}"
       query_id_str: "${query_id_str}"
+    critical: true
+    depends_on: ["验证计算条件"]
 
-# ===== 全局参数（可被步骤的 params 引用） =====
-# 运行时会优先从 data/payfile_calculate.yaml 加载，此处可覆盖
-global_params:
-  pay_file_id: "2517354962929844224"
-  query_id_str: "17762587164772517354962929844224"
-  service_code: "HRXZHS_MDD_030030"
+  - name: "直接计算(跳过验证)"
+    testcase: "testcases/api/test_payfile_calculate.py::TestCalcalutePayDocDatas::test_calcalute_without_verify_should_still_work"
+    params:
+      pay_file_id: "${pay_file_id}"
+      query_id_str: "${query_id_str}"
+    critical: false
+
+  - name: "查询发放单详情"
+    testcase: "testcases/api/test_query_details_after_calculate.py::TestQueryDetailsAfterCalculate::test_query_details_after_calculate_success"
+    params:
+      pay_file_id: "${pay_file_id}"
+    critical: true
+    depends_on: ["执行薪资计算"]
+
+# ===== 全局参数（从数据文件统一加载，单一数据源） =====
+# 所有参数维护在 data/payfile_calculate.yaml 中，此处不再重复定义
+# 如需临时覆盖某个值，可在 global_params_override 中指定
+data_file: "data/payfile_calculate.yaml"
+global_params_override: {}

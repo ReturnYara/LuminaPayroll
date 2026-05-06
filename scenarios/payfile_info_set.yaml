@@ -1,0 +1,29 @@
+# ===== 场景三：发放单计算取信息集 =====
+# 验证发放单计算后能正确获取员工信息集（员工类别、入职日期、任职受雇类型等）。
+#
+# 前置条件：发放单已完成计算（场景一）
+# 数据来源：data/query_details.yaml
+
+name: "场景三：发放单计算取信息集"
+description: "发放单计算取信息集：验证计算后获取员工类别、入职日期、任职受雇类型"
+tags:
+  - payfile
+  - info_set
+  - regression
+
+steps:
+  - name: "验证获取纳税人员信息集"
+    testcase: "testcases/api/test_query_details_after_calculate.py::TestQueryDetailsAfterCalculate::test_taxpayer_info_obtain"
+    critical: true
+
+  - name: "验证获取员工信息集"
+    testcase: "testcases/api/test_query_details_after_calculate.py::TestQueryDetailsAfterCalculate::test_emp_info_obtain"
+    critical: true
+
+  - name: "验证获取减除费用扣除信息集"
+    testcase: "testcases/api/test_query_details_after_calculate.py::TestQueryDetailsAfterCalculate::test_Standard_Deduction"
+    critical: true
+
+# ===== 全局参数（从数据文件统一加载） =====
+data_file: "data/query_details.yaml"
+global_params_override: {}

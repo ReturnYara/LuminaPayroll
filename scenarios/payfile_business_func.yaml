@@ -1,0 +1,25 @@
+# ===== 场景二：发放单计算取业务函数 =====
+# 验证未审批发放单时，业务函数（指定期间合计数、指定期间平均数）的计算结果是否正确。
+#
+# 前置条件：发放单已完成计算（场景一）
+# 数据来源：data/query_details.yaml
+
+name: "场景二：发放单计算取业务函数"
+description: "发放单计算取业务函数：验证未审批时指定期间合计数→验证未审批时指定期间平均数"
+tags:
+  - payfile
+  - business_func
+  - regression
+
+steps:
+  - name: "验证未审批时指定期间合计数"
+    testcase: "testcases/api/test_query_details_after_calculate.py::TestQueryDetailsAfterCalculate::test_specified_sum_without_approve"
+    critical: true
+
+  - name: "验证未审批时指定期间平均数"
+    testcase: "testcases/api/test_query_details_after_calculate.py::TestQueryDetailsAfterCalculate::test_specified_avg_without_approve"
+    critical: true
+
+# ===== 全局参数（从数据文件统一加载） =====
+data_file: "data/query_details.yaml"
+global_params_override: {}

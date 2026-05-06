@@ -23,8 +23,11 @@ class BasePage:
         self.base_url = self.config.get("ui_base_url", "http://localhost:8080")
 
     def navigate(self, url: Optional[str] = None):
-        """导航到页面"""
+        """导航到页面，相对路径自动拼接 base_url"""
         target_url = url or self.url
+        # 如果是相对路径（以 / 开头但不含 ://），拼接 base_url
+        if target_url and not "://" in target_url:
+            target_url = f"{self.base_url.rstrip('/')}{target_url}"
         self.logger.info(f"Navigating to: {target_url}")
         self.page.goto(target_url)
 

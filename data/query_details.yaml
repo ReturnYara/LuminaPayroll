@@ -1,0 +1,24 @@
+# 查询发放单详情参数化数据
+# 使用前请替换为实际环境的值
+
+# 环境配置
+base_url: "https://c4.yonyoucloud.com"
+
+# ===== 请求体参数 =====
+billnum: "wa_pay_file_doc_list"
+ownDomain: "yonbip-hr-paybiz"
+serviceCode: "HRXZHS_MDD_030030"
+
+# 发放单ID（与 payfile_calculate.yaml 保持一致）
+payfileId: "2521928072305836040"
+
+# 查询标识串
+queryIdStr: "17780768306142521928072305836040"
+
+onlyNoBank: false
+
+# 分页配置
+page:
+  pageSize: 200
+  pageIndex: 1
+  recordCount: 2

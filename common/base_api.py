@@ -11,7 +11,7 @@ class BaseApi:
 
     def __init__(self):
         self.config = self._load_config()
-        self.base_url = self.config.get("api_base_url", "http://localhost:8080/api")
+        self.base_url = self.config.get("api_base_url", "https://c4.yonyoucloud.com")
         self.session = requests.Session()
         self.headers = {
             "Content-Type": "application/json",

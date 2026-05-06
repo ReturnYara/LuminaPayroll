@@ -46,7 +46,7 @@ class TestVerifyCalculate:
     """验证计算条件"""
 
     def test_verify_calculate_success(self, calc_api, calc_data):
-        """验证计算条件 - 正常场景，预期 verifyResult=true"""
+        """验证计算状态"""
         response = calc_api.verify_calculate(
             pay_file_id=calc_data["pay_file_id"],
             service_code=calc_data["service_code"],
@@ -68,10 +68,8 @@ class TestVerifyCalculate:
                 f"验证未通过: {result.get('message')}"
 
     def test_verify_calculate_with_selected_docs(self, calc_api, calc_data):
-        """验证计算条件 - 指定部分人员"""
+        """验证默认计算全部人员"""
         selected_ids = calc_data.get("select_row_doc_ids", [])
-        if not selected_ids:
-            pytest.skip("未配置 select_row_doc_ids，跳过指定人员场景")
 
         response = calc_api.verify_calculate(
             pay_file_id=calc_data["pay_file_id"],
@@ -88,7 +86,7 @@ class TestCalcalutePayDocDatas:
     """执行薪资计算"""
 
     def test_calcalute_success(self, calc_api, calc_data):
-        """薪资计算 - 正常场景，预期返回"计算成功!"并轮询进度到100%"""
+        """验证计算状态"""
         # Step1: 先验证计算条件
         verify_resp = calc_api.verify_calculate(
             pay_file_id=calc_data["pay_file_id"],
@@ -155,7 +153,7 @@ class TestCalcalutePayDocDatas:
             pytest.fail(f"计算超时({poll_timeout}s)，当前进度: {percentage}%")
 
     def test_calcalute_without_verify_should_still_work(self, calc_api, calc_data):
-        """薪资计算 - 不调用 verifyCalculate 直接计算（验证接口独立性）"""
+        """验证计算接口的独立性"""
         response = calc_api.calcalute_pay_doc_datas(
             pay_file_id=calc_data["pay_file_id"],
             query_id_str=calc_data["query_id_str"],

@@ -1,7 +1,7 @@
 # 开发环境配置
-base_url: "http://localhost:8080"
-api_base_url: "http://localhost:8080/api"
-ui_base_url: "http://localhost:8080"
+base_url: "https://c4.yonyoucloud.com"
+api_base_url: "https://c4.yonyoucloud.com"
+ui_base_url: "https://c4.yonyoucloud.com"
 
 database:
   host: "localhost"

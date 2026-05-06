@@ -73,6 +73,7 @@ class StepResult:
         self.duration = 0.0
         self.output = ""
         self.error = ""
+        self.requests = []          # 失败时的接口请求/响应数据
 
     def to_dict(self) -> dict:
         return {
@@ -80,7 +81,8 @@ class StepResult:
             "testcase": self.testcase,
             "status": self.status,
             "duration": round(self.duration, 2),
-            "error": self.error
+            "error": self.error,
+            "requests": self.requests
         }
 
 
@@ -140,19 +142,55 @@ class ScenarioRunner:
         return best_match if best_score > 0 else None
 
     def run_scenario(self, yaml_path: str) -> Dict[str, Any]:
-        """执行场景"""
+        """执行场景
+        
+        支持 critical / depends_on 字段：
+        - critical: true（默认）表示关键步骤，影响场景最终结果
+        - critical: false 非关键步骤，失败不影响场景最终判定
+        - depends_on: 依赖的步骤名称列表，被依赖步骤失败则本步骤跳过
+        
+        参数加载优先级（高→低）：
+        1. 步骤级 params
+        2. global_params_override（场景 YAML 中的临时覆盖）
+        3. data_file 引用的数据文件（单一数据源）
+        4. global_params（兼容旧格式）
+        """
         scenario = self.load_scenario(yaml_path)
 
         name = scenario.get("name", "未命名场景")
         steps = scenario.get("steps", [])
-        global_params = scenario.get("global_params", {})
+
+        # 加载全局参数：优先从 data_file 读取，再合并 global_params 和 override
+        global_params = {}
+
+        # 1. 从 data_file 加载（单一数据源）
+        data_file = scenario.get("data_file")
+        if data_file:
+            data_path = self.project_root / data_file
+            if data_path.exists():
+                with open(data_path, "r", encoding="utf-8") as f:
+                    global_params = yaml.safe_load(f) or {}
+                self.logger.info(f"已从 {data_file} 加载 {len(global_params)} 个参数")
+            else:
+                self.logger.warning(f"数据文件不存在: {data_path}")
+
+        # 2. 兼容旧格式 global_params（如果有）
+        legacy_params = scenario.get("global_params", {})
+        if legacy_params:
+            global_params.update(legacy_params)
+
+        # 3. 合并 override（优先级最高）
+        override = scenario.get("global_params_override", {})
+        if override:
+            global_params.update(override)
 
         self.logger.info(f"========== 场景: {name} ==========")
         self.logger.info(f"共 {len(steps)} 个步骤")
 
         context = ScenarioContext(global_params)
         results = []
-        all_passed = True
+        # 记录每个步骤名称 → 执行状态，供 depends_on 查询
+        step_status_map: Dict[str, str] = {}
 
         for i, step in enumerate(steps, 1):
             step_name = step.get("name", f"步骤{i}")
@@ -160,8 +198,23 @@ class ScenarioRunner:
             params = step.get("params", {})
             save_to = step.get("save_to_context", {})
             use_from = step.get("use_from_context", {})
+            is_critical = step.get("critical", True)
+            depends_on = step.get("depends_on", [])
 
-            self.logger.info(f"\n--- 步骤 {i}/{len(steps)}: {step_name} ---")
+            self.logger.info(f"\n--- 步骤 {i}/{len(steps)}: {step_name} "
+                             f"{'[关键]' if is_critical else '[非关键]'} ---")
+
+            # 检查依赖步骤是否通过
+            dep_failed = [dep for dep in depends_on
+                          if step_status_map.get(dep) in ("failed", "skipped")]
+            if dep_failed:
+                skip_result = StepResult(step_name, testcase)
+                skip_result.status = "skipped"
+                skip_result.error = f"依赖步骤未通过: {', '.join(dep_failed)}"
+                results.append(skip_result)
+                step_status_map[step_name] = "skipped"
+                self.logger.info(f"跳过: 依赖步骤 {dep_failed} 未通过")
+                continue
 
             # 从上下文读取参数
             for param_key, context_key in use_from.items():
@@ -174,24 +227,26 @@ class ScenarioRunner:
             result = self._run_step(testcase, resolved_params)
             result.name = step_name
             results.append(result)
+            step_status_map[step_name] = result.status
 
             # 保存到上下文
             for context_key, json_path in save_to.items():
                 context.set(context_key, json_path)
 
             if result.status == "failed":
-                all_passed = False
-                self.logger.error(f"步骤失败: {step_name}")
-                # 后续步骤不再执行
-                for remaining_step in steps[i:]:
-                    skip_result = StepResult(remaining_step.get("name", ""), remaining_step.get("testcase", ""))
-                    skip_result.status = "skipped"
-                    results.append(skip_result)
-                break
+                if is_critical:
+                    self.logger.error(f"关键步骤失败: {step_name}")
+                else:
+                    self.logger.warning(f"非关键步骤失败: {step_name}（不影响后续执行）")
             else:
                 self.logger.info(f"步骤通过: {step_name} ({result.duration:.1f}s)")
 
-        # 汇总
+        # 汇总 —— 场景是否通过仅由关键步骤决定
+        critical_steps = [(step, r) for step, r in zip(steps, results)
+                          if step.get("critical", True)]
+        critical_failed = sum(1 for _, r in critical_steps if r.status == "failed")
+        all_passed = critical_failed == 0
+
         report = {
             "scenario": name,
             "status": "passed" if all_passed else "failed",
@@ -201,14 +256,16 @@ class ScenarioRunner:
                 "total": len(results),
                 "passed": sum(1 for r in results if r.status == "passed"),
                 "failed": sum(1 for r in results if r.status == "failed"),
-                "skipped": sum(1 for r in results if r.status == "skipped")
+                "skipped": sum(1 for r in results if r.status == "skipped"),
+                "critical_failed": critical_failed
             }
         }
 
         self.logger.info(f"\n========== 场景结束: {report['status'].upper()} ==========")
         self.logger.info(f"通过: {report['summary']['passed']}, "
                          f"失败: {report['summary']['failed']}, "
-                         f"跳过: {report['summary']['skipped']}")
+                         f"跳过: {report['summary']['skipped']}, "
+                         f"关键失败: {critical_failed}")
 
         return report
 
@@ -227,8 +284,17 @@ class ScenarioRunner:
             "-q"
         ]
 
+        # 准备请求日志临时文件路径
+        import tempfile
+        request_log_fd, request_log_path = tempfile.mkstemp(
+            prefix="lumina_req_", suffix=".json", dir=str(self.project_root / "reports")
+        )
+        os.close(request_log_fd)
+
         # 通过环境变量把参数传给原子用例
         env = os.environ.copy()
+        env["LUMINA_SUBPROCESS"] = "1"
+        env["LUMINA_REQUEST_LOG_PATH"] = request_log_path
         for key, value in params.items():
             env[f"SCENARIO_PARAM_{key.upper()}"] = str(value)
 
@@ -254,6 +320,21 @@ class ScenarioRunner:
             result.error = str(e)
 
         result.duration = (datetime.now() - start).total_seconds()
+
+        # 读取子进程写入的请求日志（仅失败时有数据）
+        try:
+            if os.path.exists(request_log_path) and os.path.getsize(request_log_path) > 0:
+                with open(request_log_path, "r", encoding="utf-8") as f:
+                    result.requests = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+        finally:
+            # 清理临时文件
+            try:
+                os.unlink(request_log_path)
+            except OSError:
+                pass
+
         return result
 
 
