@@ -1,0 +1,46 @@
+# 预置配置文件
+# 定义预置流程的业务参数
+
+# 基础配置
+base_url: "https://c4.yonyoucloud.com"
+org_id: "2517046541330939914"
+org_name: "壹贰叁"
+
+# 步骤1：薪资项目创建
+salary_items:
+  template_path: "preset/data/salary_items_template.yaml"
+  delay_between_items: 0.5  # 每个项目创建间隔（秒）
+
+# 步骤2：发薪方案
+scheme_name: "自动化测试方案"
+scheme:
+  code: "auto_test_scheme_001"
+  org_name: "壹贰叁"
+  # 计薪周期规则（"月"）
+  periodRuleId: "2517185689663569924"
+  periodRuleName: "月"
+  # 起始/生效期间（2025-01）
+  startPeriod: "2517185715448578056"
+  startPeriodName: "2025-01"
+  effectPeriod: "2517185715448578056"
+  effectPeriodName: "2025-01"
+  # 扣税方式
+  deductionWay: "1"
+  # 纳税所得项目
+  multiProjectIn: "0"
+  projectIn: "0"
+  # 税率表
+  taxTable: "cb17d85ee4d04f138745eca9f067f0d3"
+  taxTableStr: "居民税率表"
+  # 税币种
+  taxCurrId: "2517031809601503293"
+  taxCurrName: "人民币"
+
+# 步骤5：专项附加扣除所属期
+period: "2026-06"
+
+# 步骤6：发放单名称
+pay_doc_name: "自动化测试发放单"
+
+# 流程控制
+stop_on_failure: true  # 某步骤失败后是否停止后续步骤
